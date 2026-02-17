@@ -80,7 +80,7 @@ with open('first_database.pkl', 'rb') as f:
    x,y = pickle.load(f)
 
 
-num_points = 100
+num_points = 100000
 alpha, ind = solve(x[:num_points],y[:num_points], selection=True)
 
 print('Result summary -----------------')
