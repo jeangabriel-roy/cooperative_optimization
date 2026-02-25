@@ -1,46 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+from utilities import Cov, Cov2
 
-def Cov(x):
-    m = len(x)
-    Kmm = np.eye(m)
-    for ii in range(m):
-        for jj in range(ii+1,m):
-            Kmm[ii,jj] = np.exp(-(x[ii]-x[jj])**2 )
-            Kmm[jj,ii] = Kmm[ii,jj]
+def solve(x_m, x_n, y):
+    n = len(x_n)
 
-    return Kmm
-
-def Cov2(x1,x2):
-    m = len(x2)
-    n = len(x1)
-    Knm = np.zeros([n,m])
-    for ii in range(n):
-        for jj in range(m):
-            Knm[ii, jj] = np.exp(-(x1[ii] - x2[jj]) ** 2 )
-    return Knm
-
-def solve(x,y, selection=True):
-    n = len(x)
-
-    # you can either select the points among the ones you have:
-    if selection:
-        sel = [i for i in range(n)]
-        ind = np.random.choice(sel, int(np.sqrt(n)), replace=False)
-        x2 = [x[i] for i in ind]
-
-    # or take them uniformly distributed
-    else:
-        x2 = np.linspace(-1, 1, 10)
-        ind = []
-
-    M = Cov2(x, x2)
-    A = (0.5**2)*Cov(x2) + M.T @ M
+    M = Cov2(x_n, x_m)
+    A = (0.5**2)*Cov(x_m) + M.T @ M
     b = M.T @ y
 
     # here the regularization parameter nu is 1.0
-    A = A + 1.*np.eye(int(np.sqrt(n)))
+    A = A + 1.*np.eye(len(x_m))
 
     # it is good to compute the max/min eigenvalues of A for later, but only for small-size matrices
     if n<101:
@@ -50,7 +21,7 @@ def solve(x,y, selection=True):
 
     alpha = np.linalg.solve(A,b)
 
-    return alpha, ind
+    return alpha
 
 def plot_me(x,y, alpha, ind, selection=True):
 
@@ -75,15 +46,15 @@ def plot_me(x,y, alpha, ind, selection=True):
 """
 Main follows
 """
+if __name__ == "__main__" :
+    with open('first_database.pkl', 'rb') as f:
+        x,y = pickle.load(f)
 
-with open('first_database.pkl', 'rb') as f:
-   x,y = pickle.load(f)
 
+    num_points = 100000
+    alpha, ind = solve(x[:num_points],y[:num_points], selection=True)
 
-num_points = 100000
-alpha, ind = solve(x[:num_points],y[:num_points], selection=True)
+    print('Result summary -----------------')
+    print('Optimal centralised alpha = ', alpha)
 
-print('Result summary -----------------')
-print('Optimal centralised alpha = ', alpha)
-
-plot_me(x[:num_points],y[:num_points], alpha, ind, selection=True)
+    plot_me(x[:num_points],y[:num_points], alpha, ind, selection=True)
