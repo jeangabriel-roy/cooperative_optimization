@@ -88,6 +88,22 @@ def cost_function(alpha, x_m, x_n, y_n) :
     cost += np.linalg.norm(y_n - np.dot(Cov2(x_n, x_m), alpha))
     return cost
 
+def gradf(x_m, x_n, y_n, alpha, a) : #returns the partial gradient of the cost function
+    """
+    Docstring for cost_function
+    
+    :param alpha: wheights
+    :param x_m: points selected for nystrom approx
+    :param x_n: data points for the agent
+    :param y_n: data labels for the agent
+    :param a: total number of agents
+    """
+    grad = np.zeros(len(alpha))
+    Kmn = Cov2(x_m,x_n)
+    for i in range(len(x_n)) :
+        grad += (np.dot(Kmn[:,i],alpha) - y_n[i])*Kmn[:,i] 
+    grad += 0.25*(1/a) * np.dot(Cov(x_m), alpha) + (1/a)*alpha
+    return grad
 
 if __name__ == "__main__":
     #test graph
