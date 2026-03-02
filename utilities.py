@@ -22,7 +22,7 @@ def Cov2(x1,x2):
             Knm[ii, jj] = np.exp(-(x1[ii] - x2[jj]) ** 2 )
     return Knm
 
-def get_comm_mat(graph) :
+def get_comm_mat(graph) : #write lazy metropolis matrix for the graph
     a = graph.shape[0] #number of nodes
     degrees = np.zeros(a)
     for i in range(a) :
@@ -50,7 +50,7 @@ def neighbors(graph) : #returns a dictionary that outputs neighbor nodes
         neigh[i] = neighs_i
     return neigh
 
-def generate_graph(size, p, seed = 1) :
+def generate_graph(size, p, seed = 1) : #generate random graph with a given number of agents and connectivity level
     is_connected = 0
     while is_connected >= 0 :
         #create new graph
