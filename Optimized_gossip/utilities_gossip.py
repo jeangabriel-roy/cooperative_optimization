@@ -3,24 +3,6 @@ import numpy.random as rd
 import networkx as nx 
 import matplotlib.pyplot as plt
 #all graphs are represented as a adjacency matrix (1 if neighbor, 0 otherwise)
-def Cov(x):
-    m = len(x)
-    Kmm = np.eye(m)
-    for ii in range(m):
-        for jj in range(ii+1,m):
-            Kmm[ii,jj] = np.exp(-(x[ii]-x[jj])**2 )
-            Kmm[jj,ii] = Kmm[ii,jj]
-
-    return Kmm
-
-def Cov2(x1,x2):
-    m = len(x2)
-    n = len(x1)
-    Knm = np.zeros([n,m])
-    for ii in range(n):
-        for jj in range(m):
-            Knm[ii, jj] = np.exp(-(x1[ii] - x2[jj]) ** 2 )
-    return Knm
 
 def get_comm_mat(graph) : #write lazy metropolis matrix for the graph
     a = graph.shape[0] #number of nodes
@@ -65,7 +47,7 @@ def generate_graph(size, p, seed = 1) : #generate random graph with a given numb
                 elif j < i :
                     Mat[i,j] = bits[i+j*(size-1-j)]
         is_connected +=1 #change the seed
-        if is_connected%100 == 0 :
+        if is_connected%1000 == 0 :
             print("iteration "+str(is_connected))
 
         #check if the graph is connected
@@ -76,35 +58,45 @@ def generate_graph(size, p, seed = 1) : #generate random graph with a given numb
 
     return Mat
 
-def cost_function(alpha, x_m, x_n, y_n) :
-    """
-    Docstring for cost_function
-    
-    :param alpha: wheights
-    :param x_m: points selected for nystrom approx
-    :param x_n: data points
-    :param y_n: data labels
-    """
-    cost = (1/8)*np.dot(alpha, np.dot(Cov(x_m),alpha)) + (1/2)*np.linalg.norm(alpha)
-    cost += np.linalg.norm(y_n - np.dot(Cov2(x_n, x_m), alpha))
-    return cost
+def random_walk_matrix(graph) : #write random walk matrix for the graph
+    a = graph.shape[0] #number of nodes
+    degrees = np.zeros(a)
+    for i in range(a) :
+        degrees[i] = graph[i].sum()
 
-def gradf(x_m, x_n, y_n, alpha, a) : #returns the partial gradient of the cost function
-    """
-    Docstring for cost_function
-    
-    :param alpha: wheights
-    :param x_m: points selected for nystrom approx
-    :param x_n: data points for the agent
-    :param y_n: data labels for the agent
-    :param a: total number of agents
-    """
-    grad = np.zeros(len(alpha))
-    Kmn = Cov2(x_m,x_n)
-    for i in range(len(x_n)) :
-        grad += (np.dot(Kmn[:,i],alpha) - y_n[i])*Kmn[:,i] 
-    grad += 0.25*(1/a) * np.dot(Cov(x_m), alpha) + (1/a)*alpha
-    return grad
+    W = np.zeros((a,a))
+    for i in range(a) :
+        for j in range(a) :
+            if graph[i,j] > 0 :
+                W[i,j] = 1/degrees[i]
+
+    return W
+
+#determine average gossip matrix from P
+def W_ij(i,j, n) :
+    W = np.eye(n)
+    W[i,j] = 0.5
+    W[j,i] = 0.5
+    W[i,i] = 0.5
+    W[j,j] = 0.5
+    return W
+def W_of_P(P) :
+    n = len(P)
+    W = np.zeros_like(P)
+    for i in range(len(P)) :
+        for j in range(i+1, n) :
+            if P[i,j] > 0 :
+                W += P[i,j]*W_ij(i,j,n)
+    return W/n
+
+#testing the matrix P :
+#second largest eigenvalue ie spectral gap 
+def spectral_gap(P) :
+    W = W_of_P(P)
+    eigenvalues = np.linalg.eigvals(W)
+    eigenvalues = np.sort(np.abs(eigenvalues))
+    return 1/(1 - eigenvalues[-2])
+
 
 if __name__ == "__main__":
     #test graph
