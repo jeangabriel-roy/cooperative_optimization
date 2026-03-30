@@ -17,8 +17,8 @@ if __name__ == "__main__" :
     #prepare update matrices
     n = size
     W_ijs = {(i,j): W_ij(i, j, n) for i in range(n) for j in range(n)}
-
     print(spectral_gap(P_initial))
+
 
     #compute optimal P using the fully centralized algorithm
     n_iter = 0
@@ -31,6 +31,7 @@ if __name__ == "__main__" :
     P_opt = P.copy()
     lambda2_opt = spectral_gap(P_opt)
     print("final spectral gap : "+str(spectral_gap(P_opt)))
+
 
     #compute optimal P  with error using the decentralized algorithm
     n_iter = 0
@@ -50,7 +51,6 @@ if __name__ == "__main__" :
     Ps_practice = [P_initial.copy()]
     P_dec = P_initial.copy()
     print("initial spectral gap : "+str(spectral_gap(P_dec)))
-
     for i in range(50) :
         P2 = P_dec.copy()
         P_dec = subgradient_descent_step(P_dec, neighbors(graph), graph, n_iter, W_ijs=W_ijs).copy()
@@ -64,9 +64,7 @@ if __name__ == "__main__" :
     plt.plot(eig_decentralized, label = "Decentralized subgradient descent convergence")
     eig_centralized = [abs(spectral_gap(P_iter) - lambda2_opt) for P_iter in Ps]
     plt.plot(eig_centralized, label = "Partially centralized subgradient descent convergence")
-   
     plt.title("decentralized vs centralized subgradient descent convergence")
-   
     plt.xlabel("Iteration")
     plt.ylabel("distance to optimal \lambda_2")
     plt.xscale("log")
