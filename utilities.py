@@ -106,6 +106,11 @@ def gradf(x_m, x_n, y_n, alpha, a) : #returns the partial gradient of the cost f
     grad += 0.25*(1/a) * np.dot(Cov(x_m), alpha) + (1/a)*alpha
     return grad
 
+def L_smoothness(x_m, x_n, a) : #returns the L-smoothness constant of the cost function
+    Kmn = Cov2(x_n,x_m)
+    eig = np.linalg.eigh(Kmn.T @ Kmn + (0.25/a)*Cov(x_m) + (1/a)*np.eye(len(x_m)))
+    return np.max(abs(eig[0])), np.min(abs(eig[0]))
+
 if __name__ == "__main__":
     #test graph
     graph = np.array([[0, 1, 1, 1], 
@@ -117,7 +122,15 @@ if __name__ == "__main__":
     print(get_comm_mat(random_graph))
 
     #draw graph
-    G = nx.from_numpy_array(random_graph) 
+    n_agents = 5
+    seed = 1081170878575868
+    graph_practice = generate_graph(n_agents, 0.3)
+    W = get_comm_mat(graph_practice)
+    eig_vals = np.linalg.eigvalsh(W)
+    spectral_gap = eig_vals[-1] - eig_vals[-2]
+    print(f"Spectral gap: {spectral_gap}")
+    
+    G = nx.from_numpy_array(graph_practice) 
     pos = nx.spring_layout(G)
     nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray') 
     plt.show()

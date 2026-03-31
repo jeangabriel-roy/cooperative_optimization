@@ -4,7 +4,6 @@ from utilities import get_comm_mat, neighbors
 from centralized_solution import Cov, Cov2
 
 
-
 def solve_local(x_m, x_n, y, lambdas, ys, node, neighbours, a, beta):
     '''Docstring for solve_local
     :param x_m: points selected for nystrom approx
